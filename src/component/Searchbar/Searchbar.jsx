@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { Component, useState } from 'react';
 import { Header, Form, Button, ButtonLabel, Input } from './Searchbar.styled'
 import PropTypes from "prop-types";
 import { toast } from 'react-toastify'
@@ -9,22 +9,19 @@ import { IconContext } from "react-icons";
 
 
 
+const Searchbar = ({onSubmit}) =>{
 
-class Searchbar extends Component {
 
-  state = {
-    searchQuery: "",
-  }
+const [searchQuery, setSearchQuery]=useState(''); 
 
-  handleSubmitChange = (event) => {
-    this.setState({ searchQuery: event.currentTarget.value.toLowerCase() })
+const handleSubmitChange = (event) => {
+  setSearchQuery( event.currentTarget.value.toLowerCase())
   };
 
-
-  handleSubmit = (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (this.state.searchQuery.trim() === "") {
+    if (searchQuery.trim() === "") {
         toast.error('Введите Запрос.', {
         position: "top-right",
         autoClose: 2000,
@@ -37,44 +34,109 @@ class Searchbar extends Component {
       return;
     }
 
-    this.props.onSubmit(this.state.searchQuery);
-    this.setState({ searchQuery: '' });
+    onSubmit(searchQuery);
+    setSearchQuery('');
+
+    
 
   };
 
-  render() {
-
-    return (
-      <Header >
-        <Form onSubmit={this.handleSubmit} >
-          <Button type="submit"  >
-            <IconContext.Provider value={{ color: "ffffff", size: "2em" }}>
-              <div>
-                <MdFindReplace />
-              </div>
-            </IconContext.Provider>
+  return (
+    <Header >
+      <Form onSubmit={handleSubmit} >
+        <Button type="submit"  >
+          <IconContext.Provider value={{ color: "ffffff", size: "2em" }}>
+            <div>
+              <MdFindReplace />
+            </div>
+          </IconContext.Provider>
 
 
 
-            <ButtonLabel>Search</ButtonLabel>
-          </Button>
+          <ButtonLabel>Search</ButtonLabel>
+        </Button>
 
-          <Input
-            type="text"
-            autocomplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            name="searchQuery"
-            value={this.state.searchQuery}
-            onChange={this.handleSubmitChange}
+        <Input
+          type="text"
+          autocomplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          name="searchQuery"
+          value={searchQuery}
+          onChange={handleSubmitChange}
 
-          />
-        </Form>
-      </Header>
-    )
-  }
+        />
+      </Form>
+    </Header>
+  )
+
 
 }
+// class Searchbar extends Component {
+
+//   state = {
+//     searchQuery: "",
+//   }
+
+//   handleSubmitChange = (event) => {
+//     this.setState({ searchQuery: event.currentTarget.value.toLowerCase() })
+//   };
+
+
+//   handleSubmit = (event) => {
+//     event.preventDefault();
+
+//     if (this.state.searchQuery.trim() === "") {
+//         toast.error('Введите Запрос.', {
+//         position: "top-right",
+//         autoClose: 2000,
+//         hideProgressBar: false,
+//         closeOnClick: true,
+//         pauseOnHover: true,
+//         draggable: true,
+//         progress: undefined,
+//       });
+//       return;
+//     }
+
+//     this.props.onSubmit(this.state.searchQuery);
+//     this.setState({ searchQuery: '' });
+
+//   };
+
+//   render() {
+
+//     return (
+//       <Header >
+//         <Form onSubmit={this.handleSubmit} >
+//           <Button type="submit"  >
+//             <IconContext.Provider value={{ color: "ffffff", size: "2em" }}>
+//               <div>
+//                 <MdFindReplace />
+//               </div>
+//             </IconContext.Provider>
+
+
+
+//             <ButtonLabel>Search</ButtonLabel>
+//           </Button>
+
+//           <Input
+//             type="text"
+//             autocomplete="off"
+//             autoFocus
+//             placeholder="Search images and photos"
+//             name="searchQuery"
+//             value={this.state.searchQuery}
+//             onChange={this.handleSubmitChange}
+
+//           />
+//         </Form>
+//       </Header>
+//     )
+//   }
+
+// }
 
 Searchbar.propTypes = {
   onSubmit: PropTypes.func.isRequired,
