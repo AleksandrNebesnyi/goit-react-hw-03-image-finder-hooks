@@ -144,31 +144,40 @@ return(
 
 
   <Container>
-{/* 
-      if (status === 'idle') {
-      return <Searchbar onSubmit={this.handleOnSubmit}/>;
-    }
+   {/* if (status === 'idle') {
+     <Searchbar onSubmit={this.handleOnSubmit}/>  
+   }
 
-    if (status === 'pendind') {
-      return  <Loader />
-    }
-
-    if (status === ''rejected'') {
-      return <Error message={error.message} />;
-    }
-     if (status === 'resolved') {
-      return {
-        <ImageGallery images={images} onImageClick={this.handleGalleryItem} />;
+   if (status === 'pending') {
+     <Loader />
+   }
+  
+if (status === 'rejected') {
+  toast.error(`${error}`,{
+    position: "top-center",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+   
+    })
+}
+if (status==='resolved') {
+  
+  <ImageGallery images={images} onImageClick={this.handleGalleryItem} />
         <Modal
           onClose={this.toggleModal}>
             <img src={largeImage} alt="" className="Modal-image" />
                             
-           </Modal>   
-           <Button onClick={this.getImages} />   
+           </Modal>;   
+          <Button onClick={this.getImages} />  
     
-    };
-    } */}
+ } */}
 
+
+{/* ----------------------------------------------------------------- */}
 
     <Searchbar onSubmit={this.handleOnSubmit}/>
 
@@ -190,7 +199,7 @@ return(
          
          
                  )} */}
-    
+    {/* ------------------------------------------------------------------------- */}
     <ToastContainer autoClose={3000} />
 
   </Container>

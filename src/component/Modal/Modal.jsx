@@ -1,52 +1,55 @@
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import {Overlay, ModalStyled } from './Modal.styled'
-import { Component } from 'react';
+import { useEffect } from 'react';
 
 
 const modalRoot = document.querySelector('#modal-root');
+console.log(modalRoot);
 
-class Modal extends Component {
+const Modal = ({onClose, children })=>{
 
-    componentDidMount() {
-        // console.log('Modal componentDidMount');
-        window.addEventListener('keydown', this.handleKeyDown);
-      }
+
+  useEffect(() => {
+    // console.log('add');
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Убирает слушатети (unmount)
+    return () => {
+      // console.log('delate')
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
+
+
+
+
+  const  handleKeyDown = event =>{
+    if (event.code === 'Escape'){
+       // console.log('Нажали ESC, нужно закрыть модалку');
     
-      componentWillUnmount() {
-        // console.log('Modal componentWillUnmount');
-        window.removeEventListener('keydown', this.handleKeyDown);
-      }
-    
-      handleKeyDown = event => {
-        if (event.code === 'Escape') {
-          // console.log('Нажали ESC, нужно закрыть модалку');
-    
-          this.props.onClose();
-        }
-      };
-    
-      handleBackdropClick =event =>{
-        // console.log('Кликнули в бекдроп');
-        if(event.currentTarget === event.target) {
-            this.props.onClose();
-        }
-      }
-
-
-    render()
-    {
-return(
-    createPortal (
-        <Overlay onClick={this.handleBackdropClick}>
-        <ModalStyled>{this.props.children}</ModalStyled>
-      </Overlay>,
-      modalRoot,
-        )
-);
-
+       onClose();
     }
+  }
+
+
+  const handleBackdropClick =event =>{
+           // console.log('Кликнули в бекдроп');
+           if(event.currentTarget === event.target) {
+                onClose();
+            }
+          }
+  return(
+       createPortal (
+            <Overlay onClick={handleBackdropClick}>
+            <ModalStyled>{children}</ModalStyled>
+          </Overlay>,
+          modalRoot,
+            )
+  );
 }
+
+
 
 Modal.defaultProps = {
       children: null,
