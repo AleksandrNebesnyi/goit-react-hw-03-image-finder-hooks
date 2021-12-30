@@ -1,19 +1,15 @@
-import { Component } from "react";
-import Container from "./component/Container/Container";
+import { useEffect, useState } from 'react';
+import Container from './component/Container/Container';
 import { ToastContainer } from 'react-toastify';
-import Searchbar from "./component/Searchbar/Searchbar";
+import Searchbar from './component/Searchbar/Searchbar';
 import fetchPixabayImages from './api/pixabay-api.jsx';
-import ImageGallery from "./component/ImageGallery/ImageGalery";
+import ImageGallery from './component/ImageGallery/ImageGalery';
 import Modal from './component/Modal/Modal';
-import Loader from "./component/Loader/Loader";
-import Button from "./component/Button/Button";
-// import ErrorMessage from "./component/ErrorMessage/ErrorMasage";
-import { toast } from 'react-toastify'
+import Loader from './component/Loader/Loader';
+import Button from './component/Button/Button';
+import ErrorMessage from './component/ErrorMessage/ErrorMasage';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-
-
-
 
 const Status = {
   IDLE: 'idle',
@@ -22,189 +18,97 @@ const Status = {
   REJECTED: 'rejected',
 };
 
-class App extends Component {
-  state ={
-    searchQuery :"",
-    currentPage : 1,
-    isLoading :false,
-    images: [],
-    error: null,
-    showModal: false,
-    largeImage: '',
-    status: Status.IDLE,
+const App = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState('1');
+  const [images, setImages] = useState([]);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImage, setLargeImage] = useState('');
+  const [status, setStatus] = useState(Status.IDLE);
 
+  // Запрос за картинками при обновлении инпута
+  useEffect(() => {
+    if (!searchQuery) return;
 
-  }
-  
+    getImages();
+  }, [searchQuery]);
 
-// Стартовый метод.
-// Если при обновлении запрос не равен между стейтами, тогда делаем фетч
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.searchQuery !== this.state.searchQuery) {
-       this.setState({ status: Status.PENDING });
-       this.getImages();
-     }
-   }
+  // Принимаем с формы запрос и пишем в стейт + сбрасываем после отправки значения из стейта
+  const handleOnSubmit = searchQuery => {
+    setSearchQuery(searchQuery);
+    setImages([]);
+    setCurrentPage(1);
+    setError(null);
+  };
 
-// Принимаем с формы запрос и пишем в стейт + сбрасываем после отправки значения из стейта
-handleOnSubmit = searchQuery => {
-    
-  this.setState({
-       
-    searchQuery,
-    images:[],
-    currentPage:1,
-    error:null,
-    }) };
-
-
-// Получаем дату из фетча
-  getImages = async () => {
-   const { currentPage, searchQuery } = this.state;
-
-   this.setState({
-    isLoading: true,
+  //  Скролл при клике на кнопку
+  const scrollOnLoadButton = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
     });
+  };
 
-    
+  // Получаем дату из фетча
+  const getImages = async ({ currentPage, searchQuery }) => {
+    setStatus(Status.PENDING);
+
     try {
-     const  hits  = await fetchPixabayImages(searchQuery , currentPage).then(( data ) => data.hits);
+      const hits = await fetchPixabayImages(currentPage, searchQuery).then(
+        data => data.hits,
+      );
 
-     if ( hits.length === 0) {
-       toast.info('Введите валидний запрос')
-     }
-    //  console.log(hits);
- 
-  
- this.setState(prevState => ({
-        images: [...prevState.images, ...hits],
-        currentPage: prevState.currentPage + 1,
-        status: Status.RESOLVED,
-      }));
+      if (hits.length === 0) {
+        toast.info('Введите валидний запрос');
+      }
 
-     if (currentPage !== 1) {
-       this.scrollOnLoadButton();
+      setImages(prevState => [...prevState, ...hits]);
+      setCurrentPage(currentPage => {
+        return currentPage + 1;
+      });
+      setStatus(Status.RESOLVED);
+
+      if (currentPage !== 1) {
+        scrollOnLoadButton();
       }
     } catch (error) {
-            // console.log(error);
-        
-       this.setState({ 
-         error,
-         status: Status.REJECTED });
-        
-        toast.error(`${error}`,{
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-         
-          })
-     } finally {
-       this.setState({
-         isLoading: false,
-       });
-     }
-   };
-//  Скролл при клике на кнопку
-   scrollOnLoadButton = () => {
-     window.scrollTo({
-       top: document.documentElement.scrollHeight,
-       behavior: 'smooth',
-     });
-   };
-
-
-   toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      largeImage: '',
-    }));
+      setError(error);
+      setStatus(Status.REJECTED);
+    } finally {
+      setStatus(Status.IDLE);
+    }
   };
-   
-   
-   // Получает полное изображение, пишет его в стейт и открывает модалку
-  handleGalleryItem = fullImageUrl => {
-     this.setState({
-      largeImage: fullImageUrl,
-      showModal: true,
-     });
-   };
-   
 
+  const toggleModal = () => {
+    setShowModal(showModal => !showModal);
+    setLargeImage('');
+  };
 
+  // Получает полное изображение, пишет его в стейт и открывает модалку
+  const handleGalleryItem = fullImageUrl => {
+    setLargeImage(fullImageUrl);
+    setShowModal(true);
+  };
 
-render(){
+  return (
+    <Container>
+      <Searchbar onSubmit={handleOnSubmit} />
+      <ImageGallery images={images} onImageClick={handleGalleryItem} />
+      {status !== 'pending' && images.length >= 12 && (
+        <Button onClick={getImages} />
+      )}
 
-  const { images, isLoading, showModal, largeImage, error } = this.state;
-   
-return(
-
-
-  <Container>
-   {/* if (status === 'idle') {
-     <Searchbar onSubmit={this.handleOnSubmit}/>  
-   }
-
-   if (status === 'pending') {
-     <Loader />
-   }
-  
-if (status === 'rejected') {
-  toast.error(`${error}`,{
-    position: "top-center",
-    autoClose: 3000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-   
-    })
-}
-if (status==='resolved') {
-  
-  <ImageGallery images={images} onImageClick={this.handleGalleryItem} />
-        <Modal
-          onClose={this.toggleModal}>
-            <img src={largeImage} alt="" className="Modal-image" />
-                            
-           </Modal>;   
-          <Button onClick={this.getImages} />  
-    
- } */}
-
-
-{/* ----------------------------------------------------------------- */}
-
-    <Searchbar onSubmit={this.handleOnSubmit}/>
-
-    <ImageGallery images={images} onImageClick={this.handleGalleryItem} />
-
-    {!isLoading && images.length >= 12&& <Button onClick={this.getImages} />}
-
-    {showModal && (
-         <Modal
-          onClose={this.toggleModal}>
-            <img src={largeImage} alt="" className="Modal-image" />
-                            
-          </Modal>  
-     )}
-
-    {isLoading && <Loader />}
-    {/* {error && (
-         <ErrorMessage message={error.message} />
-         
-         
-                 )} */}
-    {/* ------------------------------------------------------------------------- */}
-    <ToastContainer autoClose={3000} />
-
-  </Container>
-)
-} 
-}
+      {showModal && (
+        <Modal onClose={toggleModal}>
+          <img src={largeImage} alt="" className="Modal-image" />
+        </Modal>
+      )}
+      {status === 'pending' && <Loader />}
+      {status === 'rejected' && <ErrorMessage message={error.message} />}
+      <ToastContainer autoClose={3000} />
+    </Container>
+  );
+};
 
 export default App;
