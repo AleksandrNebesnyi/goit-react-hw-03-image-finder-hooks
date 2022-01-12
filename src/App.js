@@ -26,13 +26,41 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [largeImage, setLargeImage] = useState('');
   const [status, setStatus] = useState(Status.IDLE);
+  console.log(currentPage);
+  console.log(searchQuery);
 
   // Запрос за картинками при обновлении инпута
   useEffect(() => {
     if (!searchQuery) return;
 
+    const getImages = async () => {
+      setStatus(Status.PENDING);
+      console.log(searchQuery);
+      try {
+        const hits = await fetchPixabayImages(searchQuery, currentPage).then(
+          data => data.hits,
+        );
+
+        if (hits.length === 0) {
+          toast.info('Введите валидний запрос');
+        }
+
+        setImages(prevState => [...prevState, ...hits]);
+
+        setStatus(Status.RESOLVED);
+
+        if (currentPage !== 1) {
+          scrollOnLoadButton();
+        }
+      } catch (error) {
+        setError(error);
+        setStatus(Status.REJECTED);
+      } finally {
+        setStatus(Status.IDLE);
+      }
+    };
     getImages();
-  }, [searchQuery]);
+  }, [searchQuery, currentPage]);
 
   // Принимаем с формы запрос и пишем в стейт + сбрасываем после отправки значения из стейта
   const handleOnSubmit = searchQuery => {
@@ -40,6 +68,11 @@ const App = () => {
     setImages([]);
     setCurrentPage(1);
     setError(null);
+  };
+
+  // при клике на кнопку Load More увеличиваем страницу.
+  const handleLoadMore = () => {
+    setCurrentPage(prevState => prevState + 1);
   };
 
   //  Скролл при клике на кнопку
@@ -51,34 +84,6 @@ const App = () => {
   };
 
   // Получаем дату из фетча
-  const getImages = async ({ currentPage, searchQuery }) => {
-    setStatus(Status.PENDING);
-
-    try {
-      const hits = await fetchPixabayImages(currentPage, searchQuery).then(
-        data => data.hits,
-      );
-
-      if (hits.length === 0) {
-        toast.info('Введите валидний запрос');
-      }
-
-      setImages(prevState => [...prevState, ...hits]);
-      setCurrentPage(currentPage => {
-        return currentPage + 1;
-      });
-      setStatus(Status.RESOLVED);
-
-      if (currentPage !== 1) {
-        scrollOnLoadButton();
-      }
-    } catch (error) {
-      setError(error);
-      setStatus(Status.REJECTED);
-    } finally {
-      setStatus(Status.IDLE);
-    }
-  };
 
   const toggleModal = () => {
     setShowModal(showModal => !showModal);
@@ -96,7 +101,7 @@ const App = () => {
       <Searchbar onSubmit={handleOnSubmit} />
       <ImageGallery images={images} onImageClick={handleGalleryItem} />
       {status !== 'pending' && images.length >= 12 && (
-        <Button onClick={getImages} />
+        <Button onClick={handleLoadMore} />
       )}
 
       {showModal && (
