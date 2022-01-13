@@ -26,8 +26,6 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [largeImage, setLargeImage] = useState('');
   const [status, setStatus] = useState(Status.IDLE);
-  console.log(currentPage);
-  console.log(searchQuery);
 
   // Запрос за картинками при обновлении инпута
   useEffect(() => {
@@ -35,7 +33,7 @@ const App = () => {
 
     const getImages = async () => {
       setStatus(Status.PENDING);
-      console.log(searchQuery);
+
       try {
         const hits = await fetchPixabayImages(searchQuery, currentPage).then(
           data => data.hits,
